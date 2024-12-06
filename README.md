@@ -64,7 +64,24 @@ echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
   /etc/apt/sources.list.d/jenkins.list > /dev/null
 sudo apt-get update
 sudo apt-get install jenkins`***
-
+## The above failed sio i used the user script:
+#!/bin/bash
+sudo apt update -y
+sudo touch /etc/apt/keyrings/adoptium.asc
+sudo wget -O /etc/apt/keyrings/adoptium.asc https://packages.adoptium.net/artifactory/api/gpg/key/public
+echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+sudo apt update -y
+sudo apt install temurin-17-jdk -y
+/usr/bin/java --version
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
+                  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+                  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+                              /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt-get update -y
+sudo apt-get install jenkins -y
+sudo systemctl start jenkins
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword ##
 - now, Enable the Jenkins service to start at boot.
 ***`sudo systemctl enable jenkins`***
 - Then, Start Jenkins as a service.
@@ -159,15 +176,16 @@ Our objective is to use the Jenkins Master-Client Architecture, so that we dont 
 - Now, open the public key. So do
 ***`cat id_rsa.pub`***
 - Now, copy the complete key from "**ssh** all the way to the end **-master**"
-
 - Now, go into the Jenkins-Agent server where you have **ubuntu@Jenkins-Agent:~$**
 - Here, do ***`pwd`*** to see that you are in **/home/ubuntu**
 - Then, go to the **.ssh** Directory. so do
 ***`cd .ssh/`***
 - Inside this Directory, do **`ls`**
 - You will see a File called **authorized_keys**
-- Now, get into this "**authorized_keys**" and paste that public key of the Jenkins-Master server here
-  "If you cat authorized_key File, you will see both the private and the public key"
+- Now, get into this "**authorized_keys**" and paste that public key from the Jenkins-Master server here
+- if vi fails use nana authorized_keys
+- paste the pub key of the master in the agent authorized_keys file, ctrl x, save modification
+  "If you cat authorized_key File, you will see both keys"
 - Now, get inside the Public Key and you go below that public key and paste the public key of the Jenkins-Master server that you copied
 - Then save and quit
 ***`:wq!`***
